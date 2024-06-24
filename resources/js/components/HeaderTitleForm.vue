@@ -1,30 +1,42 @@
 <template>
-    <div class="header-title-form">
-        <div class="qerggereqr">
-            <input
-                class="title-form-head input-hover"
-                v-model="question.label"
-                :placeholder="placeholder"
-            />
-            <div class="size-border-input">
-                <div class="border-focus-bottom"></div>
-                <div class="border-hover-bottom"></div>
-            </div>
+    <div>
+        <div class="cont-drag-composant">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff66">
+                <circle cy="8.5" cx="11.5" r="1.5"></circle>
+                <circle cy="8.5" cx="16.5" r="1.5"></circle>
+                <circle cy="14.5" cx="11.5" r="1.5"></circle>
+                <circle cy="14.5" cx="16.5" r="1.5"></circle>
+                <circle cy="8.5" cx="6.5" r="1.5"></circle>
+                <circle cy="14.5" cx="6.5" r="1.5"></circle>
+            </svg>
         </div>
-        <div class="change-type-section focus-active">
-            <button class="drop-down-change" @click="toggleDropdown">
-                {{ title }}
-            </button>
-            <div v-if="dropdownVisible" class="dropdown">
-                <slot name="dropdown-options">
-                    <!-- Default Dropdown Options -->
-                    <button @click="changeType('ShortAnswerQuestion')">
-                        Question Courte
-                    </button>
-                    <button @click="changeType('LongAnswerQuestion')">
-                        Question Longue
-                    </button>
-                </slot>
+        <div class="header-title-form">
+            <div class="qerggereqr">
+                <input
+                    class="title-form-head input-hover"
+                    v-model="question.label"
+                    :placeholder="placeholder"
+                />
+                <div class="size-border-input">
+                    <div class="border-focus-bottom"></div>
+                    <div class="border-hover-bottom"></div>
+                </div>
+            </div>
+            <div class="change-type-section focus-active">
+                <button class="drop-down-change" @click="toggleDropdown">
+                    {{ title }}
+                </button>
+                <div v-if="dropdownVisible" class="dropdown">
+                    <slot name="dropdown-options">
+                        <!-- Default Dropdown Options -->
+                        <button @click="changeType('ShortAnswerQuestion')">
+                            Question Courte
+                        </button>
+                        <button @click="changeType('LongAnswerQuestion')">
+                            Question Longue
+                        </button>
+                    </slot>
+                </div>
             </div>
         </div>
     </div>
@@ -59,3 +71,13 @@ export default {
     },
 };
 </script>
+
+<style>
+.cont-drag-composant {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    cursor: move;
+    visibility: hidden;
+}
+</style>
