@@ -25,6 +25,9 @@
                         @end="onDragEnd"
                         itemKey="uniqueId"
                         handle=".cont-drag-composant"
+                        :chosen-class="'drag-chosen'"
+                        :ghost-class="'drag-ghost'"
+                        :animation="200"
                     >
                         <template #item="{ element, index }">
                             <div
@@ -325,10 +328,6 @@ export default {
         },
         updateMainFormPosition() {
             if (this.selectedQuestionIndex !== null) {
-                console.log(
-                    "Updating position for selectedQuestionIndex:",
-                    this.selectedQuestionIndex
-                );
                 const questionElement =
                     this.$refs[`question-${this.selectedQuestionIndex}`];
                 if (questionElement) {
@@ -342,16 +341,6 @@ export default {
 
                     // Calculate the new top position
                     let newTop = rect.top + scrollTop - containerTop;
-                    console.log(
-                        "rect.top:",
-                        rect.top,
-                        "scrollTop:",
-                        scrollTop,
-                        "containerTop:",
-                        containerTop,
-                        "newTop:",
-                        newTop
-                    );
 
                     // Ensure the main-form stays within the visible window
                     const mainFormHeight = 160; // Adjust according to the actual height of main-form
@@ -365,7 +354,6 @@ export default {
                         newTop = scrollTop + fixedThresholdBottom;
                     }
 
-                    console.log("Final newTop:", newTop);
                     this.mainFormPosition.top = newTop;
                 } else {
                     console.log("Question element not found or invalid.");
@@ -386,7 +374,10 @@ export default {
             // Maintenir la sélection sur l'élément déplacé
             this.selectedQuestionIndex = movedElement.uniqueId;
 
-            this.saveState();
+            this.$nextTick(() => {
+                this.updateMainFormPosition();
+                this.saveState(); // Save the state after selecting a question
+            });
         },
         saveForm() {
             console.log(this.form);
@@ -415,14 +406,12 @@ export default {
         saveState() {
             this.history.past.push(JSON.stringify(this.form));
             this.history.future = [];
-            console.log("State saved:", this.history.past.length);
         },
         undo() {
             if (this.canUndo) {
                 this.history.future.push(JSON.stringify(this.form));
                 const previousState = this.history.past.pop();
                 this.form = JSON.parse(previousState);
-                console.log("Undo:", this.form);
             }
         },
         redo() {
@@ -430,7 +419,6 @@ export default {
                 this.history.past.push(JSON.stringify(this.form));
                 const nextState = this.history.future.pop();
                 this.form = JSON.parse(nextState);
-                console.log("Redo:", this.form);
             }
         },
         toggleRequired({ index }) {

@@ -5,8 +5,11 @@ import MultipleChoiceQuestion from "./components/MultipleChoiceQuestion.vue";
 import ShortAnswerQuestion from "./components/ShortAnswerQuestion.vue";
 import LongAnswerQuestion from "./components/LongAnswerQuestion.vue";
 import SideBar from "./components/SideBar.vue";
+import VueDragscroll from "vue-dragscroll";
 
 const app = createApp({});
+
+app.use(VueDragscroll);
 
 app.component("form-builder", FormBuilder);
 app.component("form-list", FormList);

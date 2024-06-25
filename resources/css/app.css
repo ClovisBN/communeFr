@@ -381,6 +381,7 @@ input:focus {
 
 .selected .side-color-comp {
     background-color: #6d6e6d;
+    z-index: 100000;
 }
 
 .selected .title-form-head {
@@ -418,6 +419,7 @@ input:focus {
     display: flex;
     flex-direction: row;
     margin-top: 7px;
+    background-color: #252525;
 }
 
 .selected .border-hover-bottom-input {
@@ -516,4 +518,8 @@ input:focus {
 
 .focus1-active {
     display: none;
+}
+
+.drag-ghost .cont-drag-composant {
+    visibility: hidden;
 }
