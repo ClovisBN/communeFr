@@ -92,7 +92,7 @@ input:focus {
 
 .cont-of-cont {
     background-color: #1d1d1d;
-    height: calc(100vh - 90px);
+    height: calc(100vh - 60px);
     position: absolute;
     bottom: 0;
     left: 0;
@@ -136,6 +136,10 @@ input:focus {
     padding: 0 24px;
 }
 
+.super-title-form {
+    padding-top: 24px;
+}
+
 .input-row {
     margin-left: 24px;
     margin-bottom: 24px;
@@ -154,6 +158,12 @@ input:focus {
 .input-row button {
     width: 80px;
     margin-left: 20px;
+}
+
+.input-super-header {
+    margin-left: 24px;
+    margin-right: 24px;
+    height: 62px;
 }
 
 .editable-div {
@@ -222,7 +232,7 @@ input:focus {
 }
 
 .title-form-cont-dynamique.shadow {
-    box-shadow: 0 2px 2px 0 rgb(0, 0, 0);
+    box-shadow: 0 1px 1px 0 rgb(0, 0, 0);
 }
 
 .title-form-cont-dynamique h2 {
@@ -307,7 +317,7 @@ input:focus {
 }
 
 .title-form-cont-dynamique {
-    height: 90px;
+    height: 60px;
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -443,6 +453,10 @@ input:focus {
     background-color: rgb(255, 255, 255);
 }
 
+.height-input-super {
+    height: 48px;
+}
+
 .cont-cross-delet-option {
     height: 48px;
     width: 48px;
@@ -502,7 +516,6 @@ input:focus {
 .selected .input-option:hover .cont-drag-end-drop {
     visibility: visible;
 }
-
 .drag-end-drop {
     padding-left: 2px;
     display: flex;

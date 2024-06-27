@@ -1,7 +1,7 @@
 <template>
     <div>
         <div ref="header" class="title-form-cont-dynamique">
-            <h2>{{ form.title }}</h2>
+            <h2 v-if="form.header">{{ form.header.label }}</h2>
             <div>
                 <button class="btn-history" @click="undo" :disabled="!canUndo">
                     Undo
@@ -20,6 +20,27 @@
         >
             <div class="cont-template" @click.stop>
                 <div style="position: relative">
+                    <div
+                        v-if="form.header"
+                        :key="form.header.uniqueId"
+                        class="cont-form header-form"
+                        :class="{
+                            selected:
+                                selectedQuestionIndex === form.header.uniqueId,
+                        }"
+                        @click="selectQuestion(form.header.uniqueId)"
+                        ref="formHeader"
+                    >
+                        <FormHeader
+                            :question="form.header"
+                            :class="{
+                                'focus-active':
+                                    selectedQuestionIndex ===
+                                    form.header.uniqueId,
+                            }"
+                            @input="saveState"
+                        ></FormHeader>
+                    </div>
                     <draggable
                         v-model="form.questions"
                         @end="onDragEnd"
@@ -120,6 +141,12 @@ function generateUniqueId() {
     );
 }
 
+function assignIds(questions) {
+    questions.forEach((question, index) => {
+        question.id = index;
+    });
+}
+
 export default {
     components: {
         draggable,
@@ -131,16 +158,14 @@ export default {
     data() {
         return {
             form: {
-                questions: [
-                    {
-                        id: 0,
-                        uniqueId: generateUniqueId(),
-                        type: "FormHeader",
-                        label: "Formulaire sans Titre",
-                        answer: "Ceci est la description du formulaire",
-                        required: false,
-                    },
-                ],
+                header: {
+                    uniqueId: generateUniqueId(),
+                    type: "FormHeader",
+                    label: "Formulaire sans Titre",
+                    answer: "Ceci est la description du formulaire",
+                    required: false,
+                },
+                questions: [],
             },
             selectedQuestionIndex: null,
             mainFormPosition: {
@@ -151,7 +176,7 @@ export default {
                 past: [],
                 future: [],
             },
-            selectedQuestionIdBeforeDrag: null, // Ajouté pour stocker l'ID de la question sélectionnée
+            selectedQuestionIdBeforeDrag: null,
         };
     },
     computed: {
@@ -170,16 +195,18 @@ export default {
     },
     created() {
         this.loadForm();
-        if (this.form.questions.length === 1) {
-            // Only the header is present
+        if (this.form.questions.length === 0) {
             this.addQuestion("MultipleChoiceQuestion");
-            this.selectedQuestionIndex = this.form.questions[1].uniqueId;
-            this.$nextTick(() => {
-                this.updateMainFormPosition();
-            });
+            this.selectedQuestionIndex =
+                this.form.questions[0]?.uniqueId || null;
+        } else {
+            assignIds(this.form.questions);
         }
+        this.$nextTick(() => {
+            this.updateMainFormPosition();
+        });
         window.addEventListener("resize", this.updateMainFormPosition);
-        this.saveState(); // Save the initial state
+        this.saveState();
     },
     mounted() {
         this.$refs.scrollContainer.addEventListener(
@@ -212,18 +239,22 @@ export default {
             let insertIndex;
 
             if (this.selectedQuestionIndex !== null) {
-                const selectedQuestion = this.form.questions.find(
-                    (q) => q.uniqueId === this.selectedQuestionIndex
-                );
+                const selectedQuestion =
+                    this.selectedQuestionIndex === this.form.header.uniqueId
+                        ? this.form.header
+                        : this.form.questions.find(
+                              (q) => q.uniqueId === this.selectedQuestionIndex
+                          );
                 newId = selectedQuestion.id + 1;
-                insertIndex = this.form.questions.indexOf(selectedQuestion) + 1;
+                insertIndex =
+                    this.selectedQuestionIndex === this.form.header.uniqueId
+                        ? 0
+                        : this.form.questions.indexOf(selectedQuestion) + 1;
             } else {
-                // If no question is selected, add to the end
                 newId = this.form.questions.length;
                 insertIndex = newId;
             }
 
-            // Incrementez les IDs des questions suivantes
             for (let i = insertIndex; i < this.form.questions.length; i++) {
                 this.form.questions[i].id++;
             }
@@ -245,12 +276,12 @@ export default {
             }
 
             this.form.questions.splice(insertIndex, 0, question);
+            assignIds(this.form.questions);
             this.selectedQuestionIndex = question.uniqueId;
             this.$nextTick(() => {
                 this.updateMainFormPosition();
-                this.saveState(); // Save the state after adding a question
+                this.saveState();
 
-                // Scroll into view if the question exceeds the viewport
                 const newQuestionElement =
                     this.$refs[`question-${this.selectedQuestionIndex}`];
                 if (newQuestionElement) {
@@ -263,10 +294,9 @@ export default {
             });
         },
         removeQuestion(index) {
-            if (index === 0) return; // Prevent removing the FormHeader
+            if (index < 0 || index >= this.form.questions.length) return;
             this.form.questions.splice(index, 1);
 
-            // Décrémenter les IDs des questions suivantes
             for (let i = index; i < this.form.questions.length; i++) {
                 this.form.questions[i].id--;
             }
@@ -276,11 +306,12 @@ export default {
             } else if (this.selectedQuestionIndex > index) {
                 this.selectedQuestionIndex -= 1;
             }
+            assignIds(this.form.questions);
             this.updateMainFormPosition();
-            this.saveState(); // Save the state after removing a question
+            this.saveState();
         },
         changeQuestionType({ index, newType }) {
-            if (index === 0) return; // Prevent changing the type of FormHeader
+            if (index < 0 || index >= this.form.questions.length) return;
             const question = this.form.questions[index];
             let newQuestion = {
                 id: question.id,
@@ -299,20 +330,21 @@ export default {
             }
 
             this.form.questions.splice(index, 1, newQuestion);
+            assignIds(this.form.questions);
             this.updateMainFormPosition();
-            this.saveState(); // Save the state after changing the question type
+            this.saveState();
         },
         selectQuestion(uniqueId) {
             this.selectedQuestionIndex = uniqueId;
             this.$nextTick(() => {
                 this.updateMainFormPosition();
-                this.saveState(); // Save the state after selecting a question
+                this.saveState();
             });
         },
         deselectQuestion() {
             this.selectedQuestionIndex = null;
             this.updateMainFormPosition();
-            this.saveState(); // Save the state after deselecting a question
+            this.saveState();
         },
         handleScroll() {
             const header = this.$refs.header;
@@ -329,7 +361,9 @@ export default {
         updateMainFormPosition() {
             if (this.selectedQuestionIndex !== null) {
                 const questionElement =
-                    this.$refs[`question-${this.selectedQuestionIndex}`];
+                    this.selectedQuestionIndex === this.form.header.uniqueId
+                        ? this.$refs.formHeader
+                        : this.$refs[`question-${this.selectedQuestionIndex}`];
                 if (questionElement) {
                     const rect = questionElement.getBoundingClientRect();
                     const scrollTop = this.$refs.scrollContainer.scrollTop;
@@ -339,11 +373,9 @@ export default {
                         this.$refs.scrollContainer.getBoundingClientRect()
                             .bottom;
 
-                    // Calculate the new top position
                     let newTop = rect.top + scrollTop - containerTop;
 
-                    // Ensure the main-form stays within the visible window
-                    const mainFormHeight = 160; // Adjust according to the actual height of main-form
+                    const mainFormHeight = 160;
                     const fixedThresholdTop = 0;
                     const fixedThresholdBottom =
                         containerBottom - mainFormHeight - 20;
@@ -355,28 +387,22 @@ export default {
                     }
 
                     this.mainFormPosition.top = newTop;
-                } else {
-                    console.log("Question element not found or invalid.");
                 }
-            } else {
-                console.log("No question selected.");
             }
         },
         onDragEnd(evt) {
             const { oldIndex, newIndex } = evt;
             const movedElement = this.form.questions[newIndex];
 
-            // Réorganiser les IDs après le drag-and-drop
             this.form.questions.forEach((question, index) => {
                 question.id = index;
             });
 
-            // Maintenir la sélection sur l'élément déplacé
             this.selectedQuestionIndex = movedElement.uniqueId;
 
             this.$nextTick(() => {
                 this.updateMainFormPosition();
-                this.saveState(); // Save the state after selecting a question
+                this.saveState();
             });
         },
         saveForm() {
@@ -398,6 +424,7 @@ export default {
             if (savedForm) {
                 try {
                     this.form = JSON.parse(savedForm);
+                    assignIds(this.form.questions);
                 } catch (e) {
                     console.error("Error parsing saved form:", e);
                 }
@@ -412,6 +439,7 @@ export default {
                 this.history.future.push(JSON.stringify(this.form));
                 const previousState = this.history.past.pop();
                 this.form = JSON.parse(previousState);
+                assignIds(this.form.questions);
             }
         },
         redo() {
@@ -419,11 +447,16 @@ export default {
                 this.history.past.push(JSON.stringify(this.form));
                 const nextState = this.history.future.pop();
                 this.form = JSON.parse(nextState);
+                assignIds(this.form.questions);
             }
         },
         toggleRequired({ index }) {
-            this.form.questions[index].required =
-                !this.form.questions[index].required;
+            if (index === 0) {
+                this.form.header.required = !this.form.header.required;
+            } else {
+                this.form.questions[index - 1].required =
+                    !this.form.questions[index - 1].required;
+            }
             this.saveState();
         },
     },

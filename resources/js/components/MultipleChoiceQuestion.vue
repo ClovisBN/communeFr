@@ -166,11 +166,8 @@ export default {
             this.$emit("change-required", { index: this.index });
         },
         onOptionDragEnd(event) {
-            const movedItem = this.question.options.splice(
-                event.oldIndex,
-                1
-            )[0];
-            this.question.options.splice(event.newIndex, 0, movedItem);
+            // No need to manually update the array, vuedraggable does it
+            console.log("Drag ended:", event.oldIndex, "to", event.newIndex);
         },
     },
 };
