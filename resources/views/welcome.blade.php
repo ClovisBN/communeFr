@@ -16,7 +16,7 @@
 
     <body>
         <div id="app">
-            <form-builder></form-builder>
+            <router-view></router-view>
         </div>
         @vite('resources/js/app.js')
     </body>

@@ -4,21 +4,20 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFormsTable extends Migration
+class CreateGrievancesTable extends Migration
 {
     public function up()
     {
-        Schema::create('forms', function (Blueprint $table) {
+        Schema::create('grievances', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->json('questions');
+            $table->string('status', 20);
+            $table->foreignId('user_id')->constrained('users');
             $table->timestamps();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('forms');
+        Schema::dropIfExists('grievances');
     }
 }

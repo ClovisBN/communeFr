@@ -1,23 +1,28 @@
 <template>
-    <div>
+    <div class="cont-create-form-dyn">
         <div ref="header" class="title-form-cont-dynamique">
             <h2 v-if="form.header">{{ form.header.label }}</h2>
-            <div>
-                <button class="btn-history" @click="undo" :disabled="!canUndo">
-                    Undo
-                </button>
-                <button class="btn-history" @click="redo" :disabled="!canRedo">
-                    Redo
-                </button>
+            <div class="nav-header-form-right">
+                <div class="redo-undo" @click="undo" :disabled="!canUndo">
+                    <svg height="24" viewBox="0 0 32 32" width="24">
+                        <path
+                            fill="#ffffff"
+                            d="M20,10H7.8149l3.5874-3.5859L10,5,4,11,10,17l1.4023-1.4146L7.8179,12H20a6,6,0,0,1,0,12H12v2h8a8,8,0,0,0,0-16Z"
+                        />
+                    </svg>
+                </div>
+                <div class="redo-undo" @click="redo" :disabled="!canRedo">
+                    <svg height="24" viewBox="0 0 32 32" width="24">
+                        <path
+                            fill="#ffffff"
+                            d="M12,10H24.1851L20.5977,6.4141,22,5,28,11,22,17l-1.4023-1.4146L24.1821,12H12a6,6,0,0,0,0,12h8v2H12a8,8,0,0,1,0-16Z"
+                        />
+                    </svg>
+                </div>
                 <button class="btn-submit" @click="saveForm">Save Form</button>
             </div>
         </div>
-        <div
-            ref="scrollContainer"
-            class="cont-of-cont"
-            @scroll="handleScroll"
-            @click="deselectQuestion"
-        >
+        <div ref="scrollContainer" class="cont-of-cont" @scroll="handleScroll">
             <div class="cont-template" @click.stop>
                 <div style="position: relative">
                     <div
@@ -71,7 +76,7 @@
                                             selectedQuestionIndex ===
                                             element.uniqueId,
                                     }"
-                                    @remove="removeQuestion"
+                                    @remove="removeQuestion(index)"
                                     @change-type="changeQuestionType"
                                     @change-required="toggleRequired"
                                     @input="saveState"
@@ -84,6 +89,43 @@
                         :style="mainFormStyle"
                         class="main-form"
                     >
+                        <svg
+                            width="25"
+                            height="25"
+                            style="cursor: pointer"
+                            @click="addQuestion('MultipleChoiceQuestion')"
+                        >
+                            <circle
+                                cx="12.5"
+                                cy="12.5"
+                                r="10.5"
+                                stroke="white"
+                                stroke-width="2"
+                                fill="none"
+                            />
+                            <line
+                                x1="12.5"
+                                y1="6"
+                                x2="12.5"
+                                y2="19"
+                                stroke="white"
+                                stroke-width="2"
+                            />
+                            <line
+                                x1="6"
+                                y1="12.5"
+                                x2="19"
+                                y2="12.5"
+                                stroke="white"
+                                stroke-width="2"
+                            />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="toll-bar-mobile">
+                <div class="cont-btn-toll-bar-mobile">
+                    <div class="row-btn-tollbar-mobile">
                         <svg
                             width="25"
                             height="25"
@@ -148,6 +190,7 @@ function assignIds(questions) {
 }
 
 export default {
+    name: "FormBuilder",
     components: {
         draggable,
         MultipleChoiceQuestion,
@@ -295,20 +338,28 @@ export default {
         },
         removeQuestion(index) {
             if (index < 0 || index >= this.form.questions.length) return;
+
+            const removedQuestionId = this.form.questions[index].uniqueId;
             this.form.questions.splice(index, 1);
 
             for (let i = index; i < this.form.questions.length; i++) {
                 this.form.questions[i].id--;
             }
 
-            if (this.selectedQuestionIndex === index) {
+            if (this.form.questions.length > 0) {
+                const newIndex = index > 0 ? index - 1 : 0;
+                this.selectedQuestionIndex =
+                    this.form.questions[newIndex].uniqueId;
+            } else {
                 this.selectedQuestionIndex = null;
-            } else if (this.selectedQuestionIndex > index) {
-                this.selectedQuestionIndex -= 1;
             }
+
+            this.$nextTick(() => {
+                this.updateMainFormPosition();
+                this.saveState();
+            });
+
             assignIds(this.form.questions);
-            this.updateMainFormPosition();
-            this.saveState();
         },
         changeQuestionType({ index, newType }) {
             if (index < 0 || index >= this.form.questions.length) return;
